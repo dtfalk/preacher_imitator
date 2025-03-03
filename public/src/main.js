@@ -48,7 +48,7 @@ export function exportAsDocx(text, filename) {
     const docParagraphs = lines.map(line => {
         return new Paragraph({
             children: [
-                new TextRun({ text: line, size: 24 })
+                new TextRun({ text: line, size: `14pt` })
             ]
         });
     });

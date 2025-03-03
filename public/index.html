@@ -251,7 +251,7 @@
         padding: 2px 5px; 
         border: none; 
         border-radius: 5px; 
-        font-size: 1rem; 
+        font-size: 1.4rem; 
         cursor: pointer; 
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
         transition: all 0.3s ease; 
@@ -327,10 +327,11 @@
         display: none;
         position: absolute;
         background-color: #f9f9f9;
+        transform: translateX(-40%);
+        padding: 10px; 
         min-width: 160px;
         border-radius: 0.5rem;
         box-shadow: 0 0.2rem 0.5rem rgba(0, 0, 0, 0.2);
-        margin-top: 4px;
         z-index: 999;
         font-family: "Georgia", serif;
     }
@@ -376,7 +377,6 @@
             padding: 10px; 
         }
     }
-
     </style>
 </head>
 <body>
@@ -394,7 +394,7 @@
 
         <!-- User Input Section -->
         <div class="row">
-            <textarea id="userPrompt" placeholder="What would you like to talk about?" oninput="autoResize(this)"></textarea>
+            <textarea id="userPrompt" placeholder="What would you like to talk about?" oninput="autoResize(this)" style="font-size: 1.3rem;"></textarea>
         </div>
 
         <!-- Error Message -->
@@ -406,21 +406,38 @@
             <submit_button onclick="submitFiles()">Submit</submit_button>
         </div>
 
-        <!-- Modal for Export Options -->
+        <!-- Modal for Export Options (Unchanged) -->
         <div id="exportModal" style="display:none; position:fixed; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.5);">
             <div style="background-color:#fff; margin:15% auto; padding:20px; width:40%; text-align:center; font-size:1.5rem;">
                 <p>Select a file format:
                     <select id="fileTypeSelect" style="font-size: 1rem;">
-                    <option value="docx">DOCX</option>
-                    <option value="pdf">PDF</option>
-                </select></p>
+                        <option value="docx">DOCX</option>
+                        <option value="pdf">PDF</option>
+                    </select>
+                </p>
                 <label for="filenameInput">Filename:</label>
-                <input type="text" id="filenameInput" value="resume" placeholder="Enter file name" style="font-size: 1.1rem;">
+                <input type="text" id="filenameInput" value="priest_response" placeholder="Enter file name" style="font-size: 1.1rem;">
                 <br><br>
                 <button onclick="exportDocument(document.getElementById('fileTypeSelect').value)" style="font-size: 1.1rem;">Export</button>
                 <button onclick="closeModal()" style="font-size: 1.1rem;">Cancel</button>
             </div>
         </div>
+
+        <!-- New Modal for Reviewing the Response -->
+        <div id="reviewModal" style="display:none; position:fixed; left:0; top:0; width:100%; height:100%; 
+            background-color:rgba(0,0,0,0.5); z-index: 1000; justify-content:center; align-items:center;">
+            <div style="background-color:#fff; margin:auto; padding:20px; width:40%; border-radius:8px; box-shadow:0 4px 6px rgba(0,0,0,0.1);">
+                <h2 style="text-align: center;">Review This Response</h2>
+                <!-- Form will be populated dynamically by JS -->
+                <form id="reviewForm" style="max-height:60vh; overflow:auto;"></form>
+
+                <div style="margin-top:1rem; text-align:right;">
+                    <button onclick="submitReview()">Submit</button>
+                    <button onclick="closeReviewModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <script type="module" src="/src/main.js"></script>
@@ -430,6 +447,7 @@
         // ===========================================================
         let chatHistoryData = [];
         let messageId = 0;
+        let review_submitted = false;
 
         function addMessageToChatHistory(sender, message) {
             const chatHistory = document.getElementById('chatHistory');
@@ -464,7 +482,6 @@
             });
         }
 
-
         function resetChat() {
             chatHistory.innerHTML = ''; 
             chatHistory.style.display = 'none';
@@ -487,7 +504,8 @@
                     <button class="export-button" data-paragraph-id="${paragraphId}">...</button>
                     <div class="export-dropdown-content">
                         <div onclick="exportFromDropdown(this)" data-paragraph-id="${paragraphId}">Export Document</div>
-                        <div onclick="reviewResponse()">Review the Response</div>
+                        <!-- Pass the 'this' element so we can grab the data attribute for paragraphId -->
+                        <div onclick="reviewResponse(this)" data-paragraph-id="${paragraphId}">Rate the Response</div>
                     </div>
                 </div>
             `;
@@ -499,12 +517,172 @@
             const paragraphId = el.getAttribute('data-paragraph-id');
             showModal(paragraphId);
         }
-
-        // Placeholder empty function
-        function reviewResponse() {
-            // Intentionally empty for now
-        }
         // ===========================================================
+
+
+        // =========================================
+        // NEW: Questionnaire logic for reviewResponse
+        // =========================================
+        // 1) Setup your list of questions here. 
+        //    Feel free to add or remove items as needed.
+        const questions = [
+            {
+                id: 'helpfulness',
+                type: 'likert',
+                question: 'How helpful was this response (1=Not at all, 5=Extremely)?'
+            },
+            {
+                id: 'accuracy',
+                type: 'likert',
+                question: 'How accurate was the response (1=Not accurate, 5=Very accurate)?'
+            },
+            {
+                id: 'comments',
+                type: 'text',
+                question: 'Any additional comments or suggestions?'
+            }
+        ];
+
+        // 2) “Review the Response” – open the modal and build the form
+        function reviewResponse(el) {
+            // We need the paragraphId to tie the review to a specific answer
+            const paragraphId = el.getAttribute('data-paragraph-id');
+            openReviewModal(paragraphId);
+        }
+
+        function openReviewModal(paragraphId) {
+            const modal = document.getElementById('reviewModal');
+            modal.style.display = 'flex';  // show the modal
+            modal.setAttribute('data-paragraph-id', paragraphId);
+
+            const formEl = document.getElementById('reviewForm');
+            formEl.innerHTML = ''; // clear old contents
+
+            questions.forEach(q => {
+                // Each question is wrapped in a "questionDiv"
+                const questionDiv = document.createElement('div');
+                questionDiv.style.marginBottom = '1rem';
+                q.name = q.id;
+
+                // Make it a vertical flex container; center items horizontally
+                questionDiv.style.display = 'flex';
+                questionDiv.style.flexDirection = 'column';
+                questionDiv.style.alignItems = 'center';
+
+                const label = document.createElement('label');
+                label.innerText = q.question;
+                label.style.marginBottom = '0.5rem';
+                // Optionally center the text as well
+                label.style.textAlign = 'center';
+                questionDiv.appendChild(label);
+
+                if (q.type === 'likert') {
+                    // Put radio buttons in a single row, also centered
+                    const radioContainer = document.createElement('div');
+                    radioContainer.style.display = 'flex';
+                    radioContainer.style.justifyContent = 'center';
+
+                    for (let i = 1; i <= 5; i++) {
+                        const radioLabel = document.createElement('label');
+                        radioLabel.style.margin = '0 1rem';
+                        radioLabel.innerText = i.toString();
+
+                        const radio = document.createElement('input');
+                        radio.type = 'radio';
+                        radio.name = q.id;
+                        radio.value = i;
+
+                        // Insert the radio into the label
+                        radioLabel.prepend(radio);
+                        radioContainer.appendChild(radioLabel);
+                    }
+                    questionDiv.appendChild(radioContainer);
+
+                } else if (q.type === 'text') {
+                    const textarea = document.createElement('textarea');
+                    textarea.name = q.id; 
+                    textarea.rows = 4;
+                    textarea.style.width = '80%';
+                    textarea.style.resize = 'vertical';
+
+                    // Center the text area
+                    textarea.style.display = 'block';
+                    textarea.style.margin = '0 auto';
+
+                    questionDiv.appendChild(textarea);
+                }
+
+                formEl.appendChild(questionDiv);
+            });
+        }
+
+        function closeReviewModal() {
+            const modal = document.getElementById('reviewModal');
+            modal.style.display = 'none';
+        }
+
+        // 3) Gather the answers and send to server
+        async function submitReview() {
+            
+            if (review_submitted) {
+                closeReviewModal();
+                return
+            }
+            const modal = document.getElementById('reviewModal');
+            const paragraphId = modal.getAttribute('data-paragraph-id');
+            const formEl = document.getElementById('reviewForm');
+
+            // Use FormData to gather responses
+            const formData = new FormData(formEl);
+            const answers = {};
+
+            // Gather radio button answers
+            questions.forEach(q => {
+                // Select the checked radio button for the current question
+                const selectedOption = modal.querySelector(`input[name="${q.name}"]:checked`);
+                
+                if (selectedOption) {
+                    // If a selection was made, store the value
+                    answers[q.name] = selectedOption.value;
+                } else {
+                    // If no selection was made, store "NA"
+                    answers[q.name] = "NA";
+                }
+            });
+
+            // Gather text input answers
+            const textInputs = modal.querySelectorAll('input[type="text"], textarea');
+            textInputs.forEach(input => {
+                // If the text field is empty, store "NA"
+                answers[input.name] = input.value.trim() !== "" ? input.value.trim() : "NA";
+            });
+
+            answers.chatHistory = chatHistoryData;
+
+            response = await fetch('/api/submit_review', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    'review': answers
+                })
+            }).then(async response => {
+                const data = await response.json();
+                if (response.status === 200) {
+                    console.log(data.message);
+                    review_submitted = true;
+                } else {
+                    console.error('Error saving review:', data);
+                }
+            }).catch(err => {
+                console.error('🚨 Network or server error:', err);
+            })
+            .finally(() => {
+                closeReviewModal();
+            });
+
+        }
+
+        // =========================================
 
 
         // Modal logic for exporting document (unchanged)
@@ -579,9 +757,12 @@
                 // Simulate adding the user prompt to the chat
                 addMessageToChatHistory('user', prompt);
 
-                // Simulate server call
+                // get server response 
                 const response = await serverRequest(chatHistoryData);
-                //const response = "Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)";
+                review_submitted = false;
+                
+                // For demonstration, we just mimic a server response:
+                // const response = "Hello test function here my name is david... (example text repeated)...";
                 //await new Promise(resolve => setTimeout(resolve, 500)); // Demo delay
 
                 addMessageToChatHistory('assistant', response);
@@ -592,7 +773,6 @@
             }
         }
         // ===========================================================
-
     </script>
 </body>
 </html>

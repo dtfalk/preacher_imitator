@@ -84,7 +84,7 @@ async function getQueryEmbedding(query) {
 }
 
 // Query Pinecone using the provided query embedding
-async function queryPinecone(queryEmbedding, topK = 7) {
+async function queryPinecone(queryEmbedding, topK = 3) {
   try {
     const queryResponse = await index.query({
       vector: queryEmbedding,
@@ -158,5 +158,49 @@ async function get_LLM_response(chat_history) {
   }
 }
 
+
+// Function to save homily review
+async function save_review(review) {
+    const dataSavePath = path.join(__dirname, '..', 'reviews');
+
+    try {
+        // Check if directory exists asynchronously, create it if missing
+        try {
+            await fsp.access(dataSavePath); // If no error, directory exists
+        } catch {
+            await fsp.mkdir(dataSavePath, { recursive: true }); // Create if missing
+        }
+
+        // Create unique filename based on timestamp
+        const timestamp = Date.now();
+        const filepath = path.join(dataSavePath, `${timestamp}.json`);
+
+        // Convert review object to JSON
+        const reviewString = JSON.stringify(review, null, 2);
+        await fsp.writeFile(filepath, reviewString, 'utf8');
+
+        return {
+            status_code: 200,
+            message: 'Review successfully saved'
+        };
+    } catch (error) {
+        console.error("Error saving review:", error);
+
+        try {
+            await fileQueueErrorFile.enqueue(async () => {
+                await logToFile(error.message, errorPath);
+            });
+        } catch (loggingError) {
+            console.error("Error logging to file:", loggingError);
+        }
+
+        return {
+            status_code: 500,
+            message: 'Error saving review'
+        };
+    }
+}
+
+
 // Make this file's functions visible to the "routes.js" file
-module.exports = { get_LLM_response, logToFile };
+module.exports = { get_LLM_response, save_review, logToFile };

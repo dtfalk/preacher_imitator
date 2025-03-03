@@ -15,7 +15,22 @@ router.post('/get_LLM_response', async (req, res) => {
 
   // Send the response (regardless of success or failure) back to the user
   // This response and error handling gets managed in the backend code as not to expose any info about our setup to the user
-  res.status(response.status_code).json(response)
+  res.status(response.status_code).json(response);
+});
+
+
+// Routing function to store a review of a homily response
+router.post('/submit_review', async (req, res) => {
+  
+  // Extract the data from the user's API call request
+  var review = req.body.review;
+
+  // Send data to the "get_LLM_response" function in the backend file to get a response from our LLM
+  var response = await backend.save_review(review);
+
+  // Send the response (regardless of success or failure) back to the user
+  // This response and error handling gets managed in the backend code as not to expose any info about our setup to the user
+  res.status(response.status_code).json(response);
 });
 
 module.exports = router;
