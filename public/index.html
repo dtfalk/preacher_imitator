@@ -434,34 +434,36 @@
         function addMessageToChatHistory(sender, message) {
             const chatHistory = document.getElementById('chatHistory');
 
-            // Show the chat history if it's hidden
             if (chatHistory.style.display === 'none') {
                 chatHistory.style.display = 'block';
             }
 
             // Create a new message div
             const messageDiv = document.createElement('div');
-            messageDiv.classList.add('chat-message', sender); // 'assistant' or 'user'
+            messageDiv.classList.add('chat-message', sender);
 
-            // Sanitize the message
+            // Convert line breaks (\n) to <br> for display ONLY
+            const formattedForDisplay = message.replace(/\n/g, '<br>');
+
             const messageParagraph = document.createElement('p');
             messageParagraph.id = `message-${messageId++}`;
-            messageParagraph.innerHTML = message;
+            messageParagraph.innerHTML = formattedForDisplay;
             messageDiv.appendChild(messageParagraph);
 
             chatHistory.appendChild(messageDiv);
 
-            // If it's an assistant message, add the export button container
+            // If assistant's message, add export button, etc.
             if (sender === 'assistant') {
                 appendControlButtons(messageDiv, messageParagraph.id);
             }
 
-            // Keep track of messages
+            // Store the *raw* message (with \n) in chatHistoryData
             chatHistoryData.push({
                 role: sender === 'user' ? 'user' : 'assistant',
-                content: message,
+                content: message   // Keep the original newlines here
             });
         }
+
 
         function resetChat() {
             chatHistory.innerHTML = ''; 
@@ -578,8 +580,9 @@
                 addMessageToChatHistory('user', prompt);
 
                 // Simulate server call
-                const response = "Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)";
-                await new Promise(resolve => setTimeout(resolve, 2000)); // Demo delay
+                const response = await serverRequest(chatHistoryData);
+                //const response = "Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)Hello test function here my name is david... (example text)";
+                //await new Promise(resolve => setTimeout(resolve, 500)); // Demo delay
 
                 addMessageToChatHistory('assistant', response);
             } catch (error) {

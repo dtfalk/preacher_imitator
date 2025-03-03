@@ -126,16 +126,9 @@ async function get_LLM_response(chat_history) {
     const retrievedContext = buildContextFromMatches(matches);
 
     // Build a new system prompt that includes the retrieved context and instructs the LLM to impersonate Father Foley.
-    const systemPrompt = `Format your responses in simple paragraphs, with clear line breaks, and indent the first line of each paragraph. 
-Include no images, bullet points, or complex styling. 
-Below is the context; craft your response in Father Foleys warm, reflective, and spiritually insightful style. 
-Ensure each paragraph is separated by a blank line. 
-Please react to the type of conversation that the user is trying to have. If they ask for a homily, give them a homily. If they want a conversation, then be more conversational.
-Regardless, make sure that you are always keeping the Context in mind when you respond. These are father foley's writings, so let their wisdom and conversational style guide your response. 
+    const systemPromptBase = process.env.SYSTEM_PROMPT;
+    const systemPrompt = systemPromptBase + "\n" + retrievedContext
 
-----------
-Context:
-${retrievedContext}`;
 
     // Make the system prompt a list of one so it can be concatenated with the rest of the conversational history.
     const systemPromptList = [{role: 'system', content: systemPrompt}]
