@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Father Ed Foley</title>
+    <style>
+    body {
+        /* A softer, parchment-like background color and a dignified serif font. */
+        font-family: "Georgia", serif;
+        background-color: #faf5e6;
+        color: #333;
+        margin: 0;
+        padding: 0;
+        font-size: 1rem; /* Scales all text */
+    }
+
+    header {
+        /* Deep purple hue evoking liturgical vestments */
+        background-color: #4b2e83; 
+        color: #fff;
+        padding: 2%;
+        text-align: center;
+        box-shadow: 0 0.4rem 0.6rem rgba(0, 0, 0, 0.1);
+    }
+
+    header h1 {
+        margin: 0;
+        font-size: 2rem; /* Resizable title */
+    }
+
+    main {
+        max-width: 75%; /* Scale based on viewport */
+        margin: 2% auto; /* Centered box */
+        padding: 2%;
+        background: #fff;
+        border: 0.1rem solid #4b2e83;
+        box-shadow: 0 0.4rem 0.8rem rgba(0, 0, 0, 0.1);
+        border-radius: 0.5rem;
+    }
+
+    /* Row for layout */
+    .row {
+        display: flex;
+        flex-wrap: wrap; /* Wraps items on smaller screens */
+        gap: 2%; /* Spacing between elements */
+        justify-content: center; /* Center items */
+    }
+
+    /* Upload columns */
+    .column {
+        position: relative; /* For clear button positioning */
+        flex: 1 1 45%; /* Responsive: grow, shrink, and set base width */
+        max-width: 30%; /* Limit column width */
+        min-width: 250px; /* Ensure usability on small screens */
+        margin: 1%; /* Space between columns */
+        padding: 2%;
+        border: 0.1rem solid #4b2e83;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.2rem 0.4rem rgba(0, 0, 0, 0.1);
+        background-color: #ffffff;
+    }
+
+    /* Clear Button */
+    .clear-button {
+        position: absolute;
+        top: 5%;
+        right: 5%;
+        background-color: #8b0000;
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        font-size: 0.8rem;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        box-shadow: 0 0.1rem 0.2rem rgba(0, 0, 0, 0.2);
+    }
+
+    .clear-button:hover {
+        background-color: #5f0000;
+    }
+
+    /* File input styling */
+    input[type="file"] {
+        display: block;
+        margin-top: 5%;
+        padding: 1%;
+        width: 80%;
+    }
+
+    /* Textarea */
+    textarea {
+        width: 70%; /* Full width */
+        height: auto;
+        margin: 4% 0;
+        padding: 2%;
+        border: 0.1rem solid #4b2e83;
+        border-radius: 0.5rem;
+        resize: none;
+        font-size: 1rem; /* Scalable font */
+        font-family: "Georgia", serif; /* Keep the dignified look consistent */
+    }
+
+    /* Buttons (side by side) */
+    .button-container {
+        display: flex;
+        justify-content: center; /* Center buttons */
+        gap: 1%; /* Space between buttons */
+    }
+
+    reset_button,
+    submit_button {
+        background-color: #4b2e83;
+        color: white;
+        padding: 1% 2%;
+        border: none;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        cursor: pointer;
+        text-align: center;
+        flex: 1 1 auto; /* Ensure buttons stay responsive */
+        max-width: 200px; /* Limit button width */
+        min-width: 100px; /* Ensure small buttons are readable */
+        font-family: "Georgia", serif;
+    }
+
+    reset_button {
+        background-color: #8b0000;
+    }
+
+    reset_button:hover {
+        background-color: #5f0000;
+    }
+
+    submit_button:hover {
+        background-color: #371a5f;
+    }
+
+    /* Chat History Section */
+    .chat-history {
+        width: 100%; /* Full width of the container */
+        max-width: 95%; /* Limit width for readability */
+        margin: 1rem auto; /* Center-align the chat history box */
+        padding: 1rem;
+        border: 0.1rem solid #4b2e83;
+        border-radius: 0.5rem;
+        background-color: #fdfdf5;
+    }
+
+    /* General Chat Message Styles */
+    .chat-message {
+        display: block; /* Ensure the message wraps tightly */
+        margin: 1.5rem 0; /* Add vertical spacing between messages */
+        padding: 0.5rem 1rem; /* Add some padding inside the bubble */
+        border-radius: 0.5rem; /* Round the corners of the message bubble */
+        word-wrap: break-word; /* Prevent text overflow */
+        word-break: break-word; /* Handle long words */
+        font-size: 1.25rem;
+        font-family: "Georgia", serif; /* Dignified font throughout */
+    }
+
+    /* assistant Message: Left-Aligned */
+    .chat-message.assistant {
+        max-width: 90%; /* Limit width of the messages for readability */
+        align-self: flex-start; /* Align message to the left */
+        background-color: #efe6f5; /* Subtle lavender/purple tone */
+        color: #4b2e83;
+    }
+
+    /* User Message: Right-Aligned */
+    .chat-message.user {
+        display: block; 
+        align-self: flex-end; 
+        background-color: #ede9dc; /* A gentle off-white/beige */
+        color: #444; 
+        text-align: left; 
+        margin-left: auto; 
+        padding: 0.5rem 1rem; 
+        border-radius: 0.5rem; 
+        word-wrap: break-word; 
+        word-break: break-word; 
+        width: fit-content;
+        max-width: 70%;
+    }
+
+    /* Ensure consistent text styles within messages */
+    .chat-message p {
+        margin: 0;
+    }
+
+    /* Overlay background (Modal) */
+    #exportModal {
+        display: none;
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5); 
+        z-index: 1000; 
+        justify-content: center;
+        align-items: center;
+        display: flex;
+    }
+
+    /* Modal content box */
+    #exportModal > div {
+        background-color: #fff;
+        margin: auto; 
+        padding: 20px;
+        width: 40%; 
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        text-align: left; 
+        transition: all 0.3s ease; 
+    }
+
+    /* Improve select and input field styling */
+    #exportModal select,
+    #exportModal input {
+        padding: 8px;
+        margin-top: 5px;
+        width: calc(100% - 16px); 
+        box-sizing: border-box; 
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-family: "Georgia", serif;
+    }
+
+    /* Style buttons for a more traditional look */
+    #exportModal button {
+        background-color: #4b2e83;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        margin-top: 5px;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: background-color 0.3s ease;
+        font-family: "Georgia", serif;
+    }
+
+    #exportModal button:hover {
+        background-color: #371a5f; /* Darker shade on hover */
+    }
+
+    /* Base styling for the export button */
+    .export-button {
+        background-color: #beb8ce; 
+        color: white; 
+        padding: 2px 5px; 
+        border: none; 
+        border-radius: 5px; 
+        font-size: 1.4rem; 
+        cursor: pointer; 
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
+        transition: all 0.3s ease; 
+        font-family: "Georgia", serif;
+    }
+
+    /* Hover effect for the export button */
+    .export-button:hover {
+        background-color: #9987ab; 
+        box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15); 
+    }
+
+    /* Optional focus styles for accessibility */
+    .export-button:focus {
+        outline: 2px solid #371a5f; 
+        outline-offset: 2px;
+    }
+
+    /* Output styling */
+    #output {
+        margin: 2% 0;
+        padding: 2%;
+        background: #f9f9f9;
+        border: 0.1rem solid #4b2e83;
+        border-radius: 0.5rem;
+        min-height: 100px;
+        display: none;
+    }
+
+    #error-message {
+        margin: 1%;
+        padding: 1%;
+        display: none;
+        color: #8b0000;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    /* Loading spinner */
+    #loading {
+        display: none;
+        text-align: center;
+        margin-top: 2%;
+    }
+
+    #loading .spinner {
+        border: 0.4rem solid #f3f3f3;
+        border-top: 0.4rem solid #4b2e83;
+        border-radius: 50%;
+        width: 5rem;
+        height: 5rem;
+        animation: spin 1s linear infinite;
+        margin: 2% auto;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* Dropdown container for export button */
+    .export-dropdown {
+        position: relative;
+        display: inline-block; /* so the nested menu can appear under it */
+    }
+
+    /* Dropdown content: hidden by default */
+    .export-dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #f9f9f9;
+        transform: translateX(-40%);
+        padding: 10px; 
+        min-width: 160px;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.2rem 0.5rem rgba(0, 0, 0, 0.2);
+        z-index: 999;
+        font-family: "Georgia", serif;
+    }
+
+    /* When hovering over the .export-dropdown, show the .export-dropdown-content */
+    .export-dropdown:hover .export-dropdown-content {
+        display: block;
+    }
+
+    /* Style for each item in the dropdown */
+    .export-dropdown-content div {
+        padding: 8px 12px;
+        cursor: pointer;
+        border-bottom: 1px solid #ccc;
+    }
+
+    .export-dropdown-content div:hover {
+        background-color: #ddd;
+    }
+
+    /* Media Query for Small Screens */
+    @media (max-width: 768px) {
+        .column {
+            flex: 1 1 100%; /* Stack upload columns */
+        }
+
+        .button-container {
+            flex-wrap: wrap; /* Stack buttons if necessary */
+        }
+
+        reset_button,
+        submit_button {
+            flex: 1 1 45%; /* Allow buttons to wrap */
+            max-width: 100%; 
+        }
+
+        #exportModal > div {
+            width: 80%; 
+            padding: 10px; 
+        }
+        .export-button {
+            width: 100%; 
+            padding: 10px; 
+        }
+    }
+    </style>
+  <script type="module" crossorigin src="/assets/index-DNnya7ON.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Father Ed Foley</h1>
+    </header>
+    <main>
+        <div class="chat-history" id="chatHistory" style="display: none;"></div>
+
+        <!-- Loading Spinner -->
+        <div id="loading">
+            <div class="spinner"></div>
+            <p>Consulting Father Foley's Writings...</p>
+        </div>
+
+        <!-- User Input Section -->
+        <div class="row">
+            <textarea id="userPrompt" placeholder="What would you like to talk about?" oninput="autoResize(this)" style="font-size: 1.3rem;"></textarea>
+        </div>
+
+        <!-- Error Message -->
+        <div id="error-message"></div>
+
+        <!-- Buttons -->
+        <div class="row button-container">
+            <reset_button onclick="resetChat()">Reset Chat</reset_button>
+            <submit_button onclick="submitFiles()">Submit</submit_button>
+        </div>
+
+        <!-- Modal for Export Options (Unchanged) -->
+        <div id="exportModal" style="display:none; position:fixed; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.5);">
+            <div style="background-color:#fff; margin:15% auto; padding:20px; width:40%; text-align:center; font-size:1.5rem;">
+                <p>Select a file format:
+                    <select id="fileTypeSelect" style="font-size: 1rem;">
+                        <option value="docx">DOCX</option>
+                        <option value="pdf">PDF</option>
+                    </select>
+                </p>
+                <label for="filenameInput">Filename:</label>
+                <input type="text" id="filenameInput" value="priest_response" placeholder="Enter file name" style="font-size: 1.1rem;">
+                <br><br>
+                <button onclick="exportDocument(document.getElementById('fileTypeSelect').value)" style="font-size: 1.1rem;">Export</button>
+                <button onclick="closeModal()" style="font-size: 1.1rem;">Cancel</button>
+            </div>
+        </div>
+
+        <!-- New Modal for Reviewing the Response -->
+        <div id="reviewModal" style="display:none; position:fixed; left:0; top:0; width:100%; height:100%; 
+            background-color:rgba(0,0,0,0.5); z-index: 1000; justify-content:center; align-items:center;">
+            <div style="background-color:#fff; margin:auto; padding:20px; width:40%; border-radius:8px; box-shadow:0 4px 6px rgba(0,0,0,0.1);">
+                <h2 style="text-align: center;">Review This Response</h2>
+                <!-- Form will be populated dynamically by JS -->
+                <form id="reviewForm" style="max-height:60vh; overflow:auto;"></form>
+
+                <div style="margin-top:1rem; text-align:right;">
+                    <button onclick="submitReview()">Submit</button>
+                    <button onclick="closeReviewModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+
+    <script>
+        // Keep original chat logic as is
+        // ===========================================================
+        let chatHistoryData = [];
+        let messageId = 0;
+        let review_submitted = false;
+
+        function addMessageToChatHistory(sender, message) {
+            const chatHistory = document.getElementById('chatHistory');
+
+            if (chatHistory.style.display === 'none') {
+                chatHistory.style.display = 'block';
+            }
+
+            // Create a new message div
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('chat-message', sender);
+
+            // Convert line breaks (\n) to <br> for display ONLY
+            const formattedForDisplay = message.replace(/\n/g, '<br>');
+
+            const messageParagraph = document.createElement('p');
+            messageParagraph.id = `message-${messageId++}`;
+            messageParagraph.innerHTML = formattedForDisplay;
+            messageDiv.appendChild(messageParagraph);
+
+            chatHistory.appendChild(messageDiv);
+
+            // If assistant's message, add export button, etc.
+            if (sender === 'assistant') {
+                appendControlButtons(messageDiv, messageParagraph.id);
+            }
+
+            // Store the *raw* message (with \n) in chatHistoryData
+            chatHistoryData.push({
+                role: sender === 'user' ? 'user' : 'assistant',
+                content: message   // Keep the original newlines here
+            });
+        }
+
+        function resetChat() {
+            chatHistory.innerHTML = ''; 
+            chatHistory.style.display = 'none';
+            chatHistoryData = [];
+        }
+        // ===========================================================
+
+
+        // Replaces the old single export button with a hover-dropdown
+        // ===========================================================
+        function appendControlButtons(messageDiv, paragraphId) {
+            const buttonsContainer = document.createElement('div');
+            buttonsContainer.style.display = 'flex';         
+            buttonsContainer.style.justifyContent = 'right'; 
+            buttonsContainer.style.gap = '10%';
+
+            // This is the dropdown menu for "Export" + "Review Response"
+            buttonsContainer.innerHTML = `
+                <div class="export-dropdown">
+                    <button class="export-button" data-paragraph-id="${paragraphId}">...</button>
+                    <div class="export-dropdown-content">
+                        <div onclick="exportFromDropdown(this)" data-paragraph-id="${paragraphId}">Export Document</div>
+                        <!-- Pass the 'this' element so we can grab the data attribute for paragraphId -->
+                        <div onclick="reviewResponse(this)" data-paragraph-id="${paragraphId}">Rate the Response</div>
+                    </div>
+                </div>
+            `;
+            messageDiv.appendChild(buttonsContainer);
+        }
+
+        // Called by the "Export Document" item in the dropdown
+        function exportFromDropdown(el) {
+            const paragraphId = el.getAttribute('data-paragraph-id');
+            showModal(paragraphId);
+        }
+        // ===========================================================
+
+
+        // =========================================
+        // NEW: Questionnaire logic for reviewResponse
+        // =========================================
+        // 1) Setup your list of questions here. 
+        //    Feel free to add or remove items as needed.
+        const questions = [
+            {
+                id: 'helpfulness',
+                type: 'likert',
+                question: 'How helpful was this response (1=Not at all, 5=Extremely)?'
+            },
+            {
+                id: 'accuracy',
+                type: 'likert',
+                question: 'How accurate was the response (1=Not accurate, 5=Very accurate)?'
+            },
+            {
+                id: 'comments',
+                type: 'text',
+                question: 'Any additional comments or suggestions?'
+            }
+        ];
+
+        // 2) “Review the Response” – open the modal and build the form
+        function reviewResponse(el) {
+            // We need the paragraphId to tie the review to a specific answer
+            const paragraphId = el.getAttribute('data-paragraph-id');
+            openReviewModal(paragraphId);
+        }
+
+        function openReviewModal(paragraphId) {
+            const modal = document.getElementById('reviewModal');
+            modal.style.display = 'flex';  // show the modal
+            modal.setAttribute('data-paragraph-id', paragraphId);
+
+            const formEl = document.getElementById('reviewForm');
+            formEl.innerHTML = ''; // clear old contents
+
+            questions.forEach(q => {
+                // Each question is wrapped in a "questionDiv"
+                const questionDiv = document.createElement('div');
+                questionDiv.style.marginBottom = '1rem';
+                q.name = q.id;
+
+                // Make it a vertical flex container; center items horizontally
+                questionDiv.style.display = 'flex';
+                questionDiv.style.flexDirection = 'column';
+                questionDiv.style.alignItems = 'center';
+
+                const label = document.createElement('label');
+                label.innerText = q.question;
+                label.style.marginBottom = '0.5rem';
+                // Optionally center the text as well
+                label.style.textAlign = 'center';
+                questionDiv.appendChild(label);
+
+                if (q.type === 'likert') {
+                    // Put radio buttons in a single row, also centered
+                    const radioContainer = document.createElement('div');
+                    radioContainer.style.display = 'flex';
+                    radioContainer.style.justifyContent = 'center';
+
+                    for (let i = 1; i <= 5; i++) {
+                        const radioLabel = document.createElement('label');
+                        radioLabel.style.margin = '0 1rem';
+                        radioLabel.innerText = i.toString();
+
+                        const radio = document.createElement('input');
+                        radio.type = 'radio';
+                        radio.name = q.id;
+                        radio.value = i;
+
+                        // Insert the radio into the label
+                        radioLabel.prepend(radio);
+                        radioContainer.appendChild(radioLabel);
+                    }
+                    questionDiv.appendChild(radioContainer);
+
+                } else if (q.type === 'text') {
+                    const textarea = document.createElement('textarea');
+                    textarea.name = q.id; 
+                    textarea.rows = 4;
+                    textarea.style.width = '80%';
+                    textarea.style.resize = 'vertical';
+
+                    // Center the text area
+                    textarea.style.display = 'block';
+                    textarea.style.margin = '0 auto';
+
+                    questionDiv.appendChild(textarea);
+                }
+
+                formEl.appendChild(questionDiv);
+            });
+        }
+
+        function closeReviewModal() {
+            const modal = document.getElementById('reviewModal');
+            modal.style.display = 'none';
+        }
+
+        // 3) Gather the answers and send to server
+        async function submitReview() {
+            
+            if (review_submitted) {
+                closeReviewModal();
+                return
+            }
+            const modal = document.getElementById('reviewModal');
+            const paragraphId = modal.getAttribute('data-paragraph-id');
+            const formEl = document.getElementById('reviewForm');
+
+            // Use FormData to gather responses
+            const formData = new FormData(formEl);
+            const answers = {};
+
+            // Gather radio button answers
+            questions.forEach(q => {
+                // Select the checked radio button for the current question
+                const selectedOption = modal.querySelector(`input[name="${q.name}"]:checked`);
+                
+                if (selectedOption) {
+                    // If a selection was made, store the value
+                    answers[q.name] = selectedOption.value;
+                } else {
+                    // If no selection was made, store "NA"
+                    answers[q.name] = "NA";
+                }
+            });
+
+            // Gather text input answers
+            const textInputs = modal.querySelectorAll('input[type="text"], textarea');
+            textInputs.forEach(input => {
+                // If the text field is empty, store "NA"
+                answers[input.name] = input.value.trim() !== "" ? input.value.trim() : "NA";
+            });
+
+            answers.chatHistory = chatHistoryData;
+
+            response = await fetch('/api/submit_review', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    'review': answers
+                })
+            }).then(async response => {
+                const data = await response.json();
+                if (response.status === 200) {
+                    console.log(data.message);
+                    review_submitted = true;
+                } else {
+                    console.error('Error saving review:', data);
+                }
+            }).catch(err => {
+                console.error('🚨 Network or server error:', err);
+            })
+            .finally(() => {
+                closeReviewModal();
+            });
+
+        }
+
+        // =========================================
+
+
+        // Modal logic for exporting document (unchanged)
+        // ===========================================================
+        function showModal(paragraphId) {
+            const modal = document.getElementById('exportModal');
+            modal.style.display = 'block';
+            modal.setAttribute('data-paragraph-id', paragraphId);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('exportModal');
+            modal.style.display = 'none'; 
+        }
+
+        function exportDocument(format) {
+            const filenameInput = document.getElementById('filenameInput').value.trim();
+            const fileType = document.getElementById('fileTypeSelect').value;
+            const fullFilename = filenameInput + '.' + fileType;  
+
+            const paragraphId = document.getElementById('exportModal').getAttribute('data-paragraph-id');
+            const paragraph = document.getElementById(paragraphId);
+            const content = paragraph.innerText;
+
+            if (format === 'docx') {
+                exportAsDocx(content, fullFilename);
+            } else if (format === 'pdf') {
+                exportAsPdf(content, fullFilename);
+            }
+            closeModal(); 
+        }
+        // ===========================================================
+
+
+        // Maintain textarea size
+        // ===========================================================
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+        }
+        // ===========================================================
+
+
+        // Example server call simulation
+        // ===========================================================
+        async function serverRequest(chat_history) {
+            const url = `/api/get_LLM_response`;
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    'chat_history': chat_history,
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Server error: ${response.status}`);
+            }
+
+            return (await response.json()).message;
+        }
+
+        async function submitFiles() {
+            const prompt = document.getElementById('userPrompt').value;
+            const errorDiv = document.getElementById("error-message");
+            const loadingDiv = document.getElementById('loading');
+
+            try {
+                loadingDiv.style.display = 'block'; 
+                document.getElementById('userPrompt').value = '';
+
+                // Simulate adding the user prompt to the chat
+                addMessageToChatHistory('user', prompt);
+
+                // get server response 
+                const response = await serverRequest(chatHistoryData);
+                review_submitted = false;
+                
+                // For demonstration, we just mimic a server response:
+                // const response = "Hello test function here my name is david... (example text repeated)...";
+                //await new Promise(resolve => setTimeout(resolve, 500)); // Demo delay
+
+                addMessageToChatHistory('assistant', response);
+            } catch (error) {
+                console.log(`Error: ${error.message}`);
+            } finally {
+                loadingDiv.style.display = 'none';
+            }
+        }
+        // ===========================================================
+    </script>
+</body>
+</html>

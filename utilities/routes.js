@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const backend = require('./backend.js');
+const path = require('path');
+const backend = require(path.resolve(process.cwd(), "utilities", "backend.js"));
 router.use(express.json());
 
 
